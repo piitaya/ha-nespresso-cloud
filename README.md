@@ -55,13 +55,19 @@ page, not as a separate entity.
 
 ## Install
 
-1. Copy `custom_components/nespresso_cloud/` into your HA `custom_components/`.
-2. Restart Home Assistant.
-3. Go to **Settings → Devices & Services → Add Integration**, then pick
-   "Nespresso Cloud".
-4. Follow the on-screen instructions (see "Authentication" below).
+Recommended via HACS:
 
-HACS: add this repo as a custom repository, category "Integration".
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=piitaya&repository=ha-nespresso-cloud&category=integration)
+
+Then restart Home Assistant and add the integration:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=nespresso_cloud)
+
+Or manually: copy `custom_components/nespresso_cloud/` into your HA
+`custom_components/`, restart, then **Settings → Devices & Services →
+Add Integration → "Nespresso Cloud"**.
+
+Follow the on-screen instructions (see "Authentication" below).
 
 ## Authentication
 
