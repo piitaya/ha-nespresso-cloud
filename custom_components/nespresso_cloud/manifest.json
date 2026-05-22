@@ -1,7 +1,7 @@
 {
   "domain": "nespresso_cloud",
   "name": "Nespresso Cloud",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "documentation": "https://github.com/piitaya/ha-nespresso-cloud",
   "issue_tracker": "https://github.com/piitaya/ha-nespresso-cloud/issues",
   "codeowners": ["@piitaya"],
