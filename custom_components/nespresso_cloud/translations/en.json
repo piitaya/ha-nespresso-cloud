@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Link your Nespresso account",
-        "description": "1. Open https://www.nespresso.com in your browser and log in.\n2. Press F12 to open Developer Tools, switch to the **Console** tab.\n3. Paste this snippet and press Enter:\n\n```\n{snippet}\n```\n\n4. Copy the `authorization_code` value from the prompt and paste it below.",
+        "description": "1. Open the Nespresso website ({url}) in your browser and log in.\n2. Press F12 to open Developer Tools, switch to the **Console** tab.\n3. Paste this snippet and press Enter:\n\n```\n{snippet}\n```\n\n4. Copy the `authorization_code` value from the prompt and paste it below.",
         "data": {
           "authorization_code": "Authorization code"
         }
       },
       "reauth_confirm": {
         "title": "Re-link your Nespresso account",
-        "description": "Your previous session expired. Repeat the browser bootstrap to get a fresh authorization code:\n\n1. Log in on https://www.nespresso.com\n2. Open DevTools (F12) → Console, paste:\n\n```\n{snippet}\n```\n\n3. Paste the `authorization_code` here.",
+        "description": "Your previous session expired. Repeat the browser bootstrap to get a fresh authorization code:\n\n1. Log in on the Nespresso website ({url}).\n2. Open Developer Tools (F12), switch to **Console**, paste:\n\n```\n{snippet}\n```\n\n3. Paste the `authorization_code` here.",
         "data": {
           "authorization_code": "Authorization code"
         }

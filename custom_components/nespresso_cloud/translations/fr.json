@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Connecter votre compte Nespresso",
-        "description": "1. Ouvrez https://www.nespresso.com dans votre navigateur et connectez-vous.\n2. Appuyez sur F12 pour ouvrir les outils développeur, allez dans l'onglet **Console**.\n3. Collez ce snippet et validez :\n\n```\n{snippet}\n```\n\n4. Copiez la valeur de `authorization_code` affichée et collez-la ci-dessous.",
+        "description": "1. Ouvrez le site Nespresso ({url}) dans votre navigateur et connectez-vous.\n2. Appuyez sur F12 pour ouvrir les outils développeur, allez dans l'onglet **Console**.\n3. Collez ce snippet et validez :\n\n```\n{snippet}\n```\n\n4. Copiez la valeur de `authorization_code` affichée et collez-la ci-dessous.",
         "data": {
           "authorization_code": "Code d'autorisation"
         }
       },
       "reauth_confirm": {
         "title": "Reconnecter votre compte Nespresso",
-        "description": "Votre session précédente a expiré. Refaites la procédure pour obtenir un nouveau code :\n\n1. Connectez-vous sur https://www.nespresso.com\n2. Ouvrez DevTools (F12) → Console, collez :\n\n```\n{snippet}\n```\n\n3. Collez le `authorization_code` ici.",
+        "description": "Votre session précédente a expiré. Refaites la procédure pour obtenir un nouveau code :\n\n1. Connectez-vous sur le site Nespresso ({url}).\n2. Ouvrez les outils développeur (F12), allez dans **Console**, collez :\n\n```\n{snippet}\n```\n\n3. Collez le `authorization_code` ici.",
         "data": {
           "authorization_code": "Code d'autorisation"
         }

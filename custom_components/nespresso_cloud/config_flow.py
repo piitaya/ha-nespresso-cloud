@@ -149,7 +149,10 @@ class NespressoCloudConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({vol.Required(CONF_AUTHORIZATION_CODE): str}),
-            description_placeholders={"snippet": _snippet(self._challenge)},
+            description_placeholders={
+                "snippet": _snippet(self._challenge),
+                "url": "https://www.nespresso.com",
+            },
             errors=errors,
         )
 
@@ -198,7 +201,10 @@ class NespressoCloudConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=vol.Schema({vol.Required(CONF_AUTHORIZATION_CODE): str}),
-            description_placeholders={"snippet": _snippet(self._challenge)},
+            description_placeholders={
+                "snippet": _snippet(self._challenge),
+                "url": "https://www.nespresso.com",
+            },
             errors=errors,
         )
 
