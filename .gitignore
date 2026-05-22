@@ -1,0 +1,27 @@
+# Secrets — never commit.
+.env
+.env.*
+
+# Local folder
+work/
+
+# Python.
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Editor / OS.
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Claude Code / Cursor local settings
+.claude/
+.cursor/

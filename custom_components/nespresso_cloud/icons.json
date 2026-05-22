@@ -1,0 +1,17 @@
+{
+  "entity": {
+    "sensor": {
+      "machine_state": { "default": "mdi:coffee-maker" },
+      "milk_unit": { "default": "mdi:cup" },
+      "last_seen": { "default": "mdi:clock-outline" },
+      "error": { "default": "mdi:alert-circle-outline" },
+      "error_code": { "default": "mdi:identifier" },
+      "error_origin": { "default": "mdi:source-branch" }
+    },
+    "binary_sensor": {
+      "tank_empty": { "default": "mdi:water-off" },
+      "old_capsule": { "default": "mdi:coffee-off" },
+      "descaling_alert": { "default": "mdi:water-pump" }
+    }
+  }
+}

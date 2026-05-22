@@ -1,0 +1,130 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Link your Nespresso account",
+        "description": "1. Open https://www.nespresso.com in your browser and log in.\n2. Press F12 to open Developer Tools, switch to the **Console** tab.\n3. Paste this snippet and press Enter:\n\n```\n{snippet}\n```\n\n4. Copy the `authorization_code` value from the prompt and paste it below.",
+        "data": {
+          "authorization_code": "Authorization code"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-link your Nespresso account",
+        "description": "Your previous session expired. Repeat the browser bootstrap to get a fresh authorization code:\n\n1. Log in on https://www.nespresso.com\n2. Open DevTools (F12) → Console, paste:\n\n```\n{snippet}\n```\n\n3. Paste the `authorization_code` here.",
+        "data": {
+          "authorization_code": "Authorization code"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "The refresh token was rejected by Nespresso. Capture a fresh one and try again.",
+      "cannot_connect": "Could not reach the Nespresso cloud.",
+      "different_account": "This refresh token belongs to a different Nespresso account than the one originally configured.",
+      "unknown": "Unexpected error. Check the logs."
+    },
+    "abort": {
+      "already_configured": "This Nespresso account is already configured.",
+      "reauth_successful": "Token successfully refreshed."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "machine_state": {
+        "state": {
+          "reset": "Reset",
+          "heat_up": "Heating up",
+          "ready": "Ready",
+          "descaling_ready": "Descaling ready",
+          "brewing": "Brewing",
+          "cleaning": "Cleaning",
+          "descaling": "Descaling",
+          "emptying": "Emptying",
+          "device_error": "Error",
+          "low_power": "Low power",
+          "cool_down": "Cooling down",
+          "service_mode": "Service mode",
+          "standby": "Standby",
+          "updating": "Updating",
+          "rinsing": "Rinsing",
+          "capsule_reading": "Reading capsule",
+          "descale_sequence_decoding": "Decoding descale sequence",
+          "tank_empty": "Tank empty",
+          "descaling_paused": "Descaling paused",
+          "initialization": "Initializing",
+          "rinsing_ready": "Rinsing ready",
+          "ready_blocked": "Blocked",
+          "cleaning_paused": "Cleaning paused",
+          "emptying_ready": "Emptying ready",
+          "cleaning_ready": "Cleaning ready",
+          "old_capsule_detected": "Old capsule",
+          "rinsing_paused": "Rinsing paused",
+          "hard_reset_running": "Hard reset",
+          "soft_reset_running": "Soft reset"
+        }
+      },
+      "milk_unit": {
+        "name": "Milk unit",
+        "state": {
+          "offline": "Offline",
+          "ready": "Ready",
+          "frothing": "Frothing",
+          "cleaning": "Cleaning",
+          "heat_up": "Heating up",
+          "descaling_ready": "Descaling ready",
+          "descaling_active": "Descaling",
+          "rinsing_ready": "Rinsing ready",
+          "rinsing_active": "Rinsing",
+          "blocked_menu": "Blocked (coffee running)",
+          "blocked_cleaning_needed": "Blocked (cleaning required)",
+          "blocked_descaling_needed": "Blocked (descaling required)",
+          "waiting": "Waiting",
+          "descaling_paused": "Descaling paused",
+          "rinsing_paused": "Rinsing paused"
+        }
+      },
+      "error_origin": {
+        "name": "Error origin",
+        "state": {
+          "none": "None",
+          "power_line": "Power line",
+          "mmi": "User interface",
+          "main_system": "Main system",
+          "sensor": "Sensor",
+          "actuator": "Actuator",
+          "other": "Other",
+          "unknown": "Unknown"
+        }
+      },
+      "last_seen": { "name": "Last seen" },
+      "error": {
+        "name": "Error",
+        "state": {
+          "none": "None",
+          "descaling_required": "Descaling required",
+          "capsule_detected": "Capsule detected",
+          "emptying_aborted": "Emptying aborted",
+          "water_tank_empty": "Water tank empty",
+          "lever_open": "Lever open",
+          "old_capsule": "Old capsule",
+          "no_capsule_detected": "No capsule detected",
+          "drying_interrupted": "Drying interrupted",
+          "capsule_not_supported": "Capsule not supported",
+          "process_stopped": "Process stopped",
+          "descaling_interrupted": "Descaling interrupted",
+          "top_up_not_allowed": "Top-up not allowed",
+          "cooldown_started": "Cooldown started",
+          "machine_failure": "Machine failure",
+          "capsule_reading_failed": "Capsule reading failed",
+          "no_water_flow": "No water flow"
+        }
+      },
+      "error_code": { "name": "Error code" }
+    },
+    "binary_sensor": {
+      "connected": { "name": "Connected" },
+      "descaling_alert": { "name": "Descaling required" },
+      "tank_empty": { "name": "Water tank empty" },
+      "old_capsule": { "name": "Old capsule" }
+    }
+  }
+}

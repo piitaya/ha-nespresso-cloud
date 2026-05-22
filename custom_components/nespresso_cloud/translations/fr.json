@@ -1,0 +1,130 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connecter votre compte Nespresso",
+        "description": "1. Ouvrez https://www.nespresso.com dans votre navigateur et connectez-vous.\n2. Appuyez sur F12 pour ouvrir les outils développeur, allez dans l'onglet **Console**.\n3. Collez ce snippet et validez :\n\n```\n{snippet}\n```\n\n4. Copiez la valeur de `authorization_code` affichée et collez-la ci-dessous.",
+        "data": {
+          "authorization_code": "Code d'autorisation"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reconnecter votre compte Nespresso",
+        "description": "Votre session précédente a expiré. Refaites la procédure pour obtenir un nouveau code :\n\n1. Connectez-vous sur https://www.nespresso.com\n2. Ouvrez DevTools (F12) → Console, collez :\n\n```\n{snippet}\n```\n\n3. Collez le `authorization_code` ici.",
+        "data": {
+          "authorization_code": "Code d'autorisation"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Le refresh token a été rejeté par Nespresso. Capturez-en un nouveau et réessayez.",
+      "cannot_connect": "Impossible de joindre le cloud Nespresso.",
+      "different_account": "Ce refresh token appartient à un autre compte Nespresso que celui initialement configuré.",
+      "unknown": "Erreur inattendue. Vérifiez les logs."
+    },
+    "abort": {
+      "already_configured": "Ce compte Nespresso est déjà configuré.",
+      "reauth_successful": "Token rafraîchi avec succès."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "machine_state": {
+        "state": {
+          "reset": "Réinitialisée",
+          "heat_up": "Chauffage",
+          "ready": "Prête",
+          "descaling_ready": "Prête pour détartrage",
+          "brewing": "Préparation",
+          "cleaning": "Nettoyage",
+          "descaling": "Détartrage",
+          "emptying": "Vidange",
+          "device_error": "Erreur",
+          "low_power": "Économie d'énergie",
+          "cool_down": "Refroidissement",
+          "service_mode": "Mode service",
+          "standby": "Veille",
+          "updating": "Mise à jour",
+          "rinsing": "Rinçage",
+          "capsule_reading": "Lecture capsule",
+          "descale_sequence_decoding": "Décodage détartrage",
+          "tank_empty": "Réservoir vide",
+          "descaling_paused": "Détartrage en pause",
+          "initialization": "Initialisation",
+          "rinsing_ready": "Prête pour rinçage",
+          "ready_blocked": "Bloquée",
+          "cleaning_paused": "Nettoyage en pause",
+          "emptying_ready": "Prête pour vidange",
+          "cleaning_ready": "Prête pour nettoyage",
+          "old_capsule_detected": "Capsule usagée",
+          "rinsing_paused": "Rinçage en pause",
+          "hard_reset_running": "Réinitialisation usine",
+          "soft_reset_running": "Réinitialisation logicielle"
+        }
+      },
+      "milk_unit": {
+        "name": "Module lait",
+        "state": {
+          "offline": "Hors ligne",
+          "ready": "Prêt",
+          "frothing": "Émulsion",
+          "cleaning": "Nettoyage",
+          "heat_up": "Chauffage",
+          "descaling_ready": "Prêt pour détartrage",
+          "descaling_active": "Détartrage",
+          "rinsing_ready": "Prêt pour rinçage",
+          "rinsing_active": "Rinçage",
+          "blocked_menu": "Bloqué (café en cours)",
+          "blocked_cleaning_needed": "Bloqué (nettoyage requis)",
+          "blocked_descaling_needed": "Bloqué (détartrage requis)",
+          "waiting": "En attente",
+          "descaling_paused": "Détartrage en pause",
+          "rinsing_paused": "Rinçage en pause"
+        }
+      },
+      "error_origin": {
+        "name": "Origine de l'erreur",
+        "state": {
+          "none": "Aucune",
+          "power_line": "Alimentation électrique",
+          "mmi": "Interface utilisateur",
+          "main_system": "Système principal",
+          "sensor": "Capteur",
+          "actuator": "Actionneur",
+          "other": "Autre",
+          "unknown": "Inconnue"
+        }
+      },
+      "last_seen": { "name": "Dernière connexion" },
+      "error": {
+        "name": "Erreur",
+        "state": {
+          "none": "Aucune",
+          "descaling_required": "Détartrage requis",
+          "capsule_detected": "Capsule détectée",
+          "emptying_aborted": "Vidange interrompue",
+          "water_tank_empty": "Réservoir vide",
+          "lever_open": "Couvercle ouvert",
+          "old_capsule": "Capsule usagée",
+          "no_capsule_detected": "Pas de capsule",
+          "drying_interrupted": "Séchage interrompu",
+          "capsule_not_supported": "Capsule non prise en charge",
+          "process_stopped": "Opération interrompue",
+          "descaling_interrupted": "Détartrage interrompu",
+          "top_up_not_allowed": "Recharge non autorisée",
+          "cooldown_started": "Refroidissement",
+          "machine_failure": "Panne machine",
+          "capsule_reading_failed": "Lecture capsule échouée",
+          "no_water_flow": "Pas d'eau"
+        }
+      },
+      "error_code": { "name": "Code d'erreur" }
+    },
+    "binary_sensor": {
+      "connected": { "name": "Connectée" },
+      "descaling_alert": { "name": "Détartrage requis" },
+      "tank_empty": { "name": "Réservoir d'eau vide" },
+      "old_capsule": { "name": "Capsule usagée" }
+    }
+  }
+}
