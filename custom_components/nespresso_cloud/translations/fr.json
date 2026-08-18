@@ -27,6 +27,19 @@
       "reauth_successful": "Token rafraîchi avec succès."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Nespresso Cloud",
+        "data": {
+          "pause_when_offline": "Suspendre l'interrogation quand la machine est hors-ligne"
+        },
+        "data_description": {
+          "pause_when_offline": "Suspend toute interrogation du cloud quand la machine est hors-ligne ; une automatisation doit la relancer, par exemple une prise connectée appelant homeassistant.update_entity. À n'activer que si un tel déclencheur existe."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "machine_state": {

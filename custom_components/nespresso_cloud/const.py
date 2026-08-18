@@ -13,10 +13,24 @@ CONF_COUNTRY: Final = "country"
 CONF_OWNER_ID: Final = "owner_id"
 CONF_DEVICE_ID: Final = "device_id"
 
+CONF_PAUSE_WHEN_OFFLINE: Final = "pause_when_offline"
+
 # Polling cadence (seconds). Across multiple machines, fastest wins.
+# Offline polls hit presence only, so 60s stays cheap.
 SCAN_INTERVAL_OFFLINE_S: Final = 60
-SCAN_INTERVAL_IDLE_S: Final = 20
+SCAN_INTERVAL_IDLE_S: Final = 30
 SCAN_INTERVAL_ACTIVE_S: Final = 5
+
+# After a machine comes online, poll fast this long to catch the brew a
+# wake-up usually precedes; the connected window itself is only minutes.
+ACTIVE_HOLD_S: Final = 120
+
+# Firmware/brand info and the machine list barely change; refetch at most daily.
+MACHINE_INFO_TTL_S: Final = 86400
+MACHINE_LIST_TTL_S: Final = 86400
+
+ERROR_BACKOFF_BASE_S: Final = 60
+ERROR_BACKOFF_MAX_S: Final = 900
 
 MACHINE_STATUS_TANK_EMPTY: Final = 19
 MACHINE_STATUS_OLD_CAPSULE_DETECTED: Final = 35

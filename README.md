@@ -84,6 +84,58 @@ HA stores the resulting refresh token and rotates it on each call. If
 it ever gets revoked (for example because you logged out everywhere),
 HA triggers a reauth that replays the same browser flow.
 
+## Polling
+
+The integration polls the cloud on an adaptive schedule: every few
+seconds while a machine is heating or brewing, every 30 seconds while
+it is on but idle, and once a minute while it is offline. Offline polls
+are a single lightweight request, and firmware info and the machine
+list are cached and refreshed at most once a day, so an idle account
+stays light.
+
+### Cut polling with a smart plug
+
+If the machine sits on a power-metering smart plug, you can stop
+polling entirely while it is offline and let the plug wake it. Turn on
+**Settings → Devices & Services → Nespresso Cloud → Configure → "Stop
+polling while the machine is offline"**.
+
+With the option on, an offline machine is never polled, so it takes an
+automation to refresh the integration when the machine starts drawing
+power. Polling resumes on its own while the machine is online, and that
+is what catches it going back offline, so the `Connected` sensor stays
+correct without any downward trigger.
+
+Example automation, on the plug's power sensor rising above 1 W:
+
+```yaml
+alias: Nespresso - wake polling on power
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.coffee_machine_plug_power
+    above: 1
+conditions:
+  - condition: state
+    entity_id: binary_sensor.coffee_machine_connected
+    state: "off"
+actions:
+  - repeat:
+      count: 4
+      sequence:
+        - delay: "00:00:15"
+        - action: homeassistant.update_entity
+          target:
+            entity_id: binary_sensor.coffee_machine_connected
+mode: single
+```
+
+The `update_entity` calls force a refresh; the first one that sees the
+machine online switches the integration into fast polling for a couple
+of minutes, enough to follow the brew. The repeats cover the lag
+between the machine drawing power and actually reaching the cloud. The
+`Connected` sensor being `off` in the condition keeps the automation
+from re-firing mid-session.
+
 ## Limitations
 
 - **Read-only**. The cloud exposes `descaling`, `rinsing`, `emptying`,

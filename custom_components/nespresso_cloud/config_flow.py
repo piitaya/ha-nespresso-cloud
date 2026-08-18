@@ -16,15 +16,19 @@ from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
+    OptionsFlow,
 )
 from homeassistant.const import CONF_COUNTRY
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import BooleanSelector
 
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_ACCESS_TOKEN_EXPIRES_AT,
     CONF_DEVICE_ID,
     CONF_OWNER_ID,
+    CONF_PAUSE_WHEN_OFFLINE,
     CONF_REFRESH_TOKEN,
     DOMAIN,
 )
@@ -91,6 +95,14 @@ class NespressoCloudConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a Nespresso Cloud config flow."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: ConfigEntry,
+    ) -> NespressoCloudOptionsFlow:
+        """Return the options flow handler."""
+        return NespressoCloudOptionsFlow()
 
     def __init__(self) -> None:
         self._device_id: str | None = None
@@ -242,3 +254,28 @@ class NespressoCloudConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         info = await api.async_get_personal_info()
         return tokens, info.member_number, country
+
+
+class NespressoCloudOptionsFlow(OptionsFlow):
+    """Handle Nespresso Cloud options."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_PAUSE_WHEN_OFFLINE,
+                        default=self.config_entry.options.get(
+                            CONF_PAUSE_WHEN_OFFLINE, False
+                        ),
+                    ): BooleanSelector(),
+                }
+            ),
+        )

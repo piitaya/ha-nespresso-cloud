@@ -27,6 +27,19 @@
       "reauth_successful": "Token successfully refreshed."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Nespresso Cloud options",
+        "data": {
+          "pause_when_offline": "Stop polling while the machine is offline"
+        },
+        "data_description": {
+          "pause_when_offline": "Stops all cloud polling while the machine is offline; an automation must wake it, for example a smart plug calling homeassistant.update_entity. Only enable it if you have such a trigger."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "machine_state": {
