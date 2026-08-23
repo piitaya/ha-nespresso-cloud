@@ -112,6 +112,7 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._error_backoff = 0
         self._connected_ids: set[str] = set()
         self._active_until = 0.0
+        self._last_status: dict[str, MachineStatus] = {}
 
     async def _async_persist_tokens(self, tokens: Tokens) -> None:
         """Persist rotated tokens to the config entry.
@@ -149,22 +150,16 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 )
                 connected = presence is not None and presence.connected
 
-                previous_snapshot = (
-                    self.data.machines.get(machine.id)
-                    if self.data is not None
-                    else None
-                )
-
-                previous_status = previous_snapshot.status if previous_snapshot else None
-
                 if connected:
                     status = await self._safe(
                         self.api.async_get_status(self.owner_id, machine.id)
                     )
-                    if status is None:
-                        status = previous_status
+                    if status is not None:
+                        self._last_status[machine.id] = status
+                    else:
+                        status = self._last_status.get(machine.id)
                 else:
-                    status = previous_status
+                    status = self._last_status.get(machine.id)
 
                 snapshots[machine.id] = MachineSnapshot(
                     machine=machine,
