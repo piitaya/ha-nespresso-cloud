@@ -155,12 +155,16 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
                     else None
                 )
 
+                previous_status = previous_snapshot.status if previous_snapshot else None
+
                 if connected:
                     status = await self._safe(
                         self.api.async_get_status(self.owner_id, machine.id)
                     )
+                    if status is None:
+                        status = previous_status
                 else:
-                    status = previous_snapshot.status if previous_snapshot else None
+                    status = previous_status
 
                 snapshots[machine.id] = MachineSnapshot(
                     machine=machine,
