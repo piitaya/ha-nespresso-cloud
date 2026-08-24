@@ -7,6 +7,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
+from .const import CONF_PAUSE_WHEN_OFFLINE
 from .coordinator import NespressoCoordinator
 
 type NespressoCloudEntry = ConfigEntry[NespressoCoordinator]
@@ -37,7 +38,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: NespressoCloudEntry) -> 
 async def _async_reload_on_update(
     hass: HomeAssistant, entry: NespressoCloudEntry
 ) -> None:
-    """Reload so the coordinator picks up changed options."""
+    """Reload when coordinator options change."""
+    coordinator = entry.runtime_data
+
+    polling_disabled = bool(entry.pref_disable_polling)
+    pause_when_offline = bool(entry.options.get(CONF_PAUSE_WHEN_OFFLINE, False))
+
+    if (
+        polling_disabled == coordinator.polling_disabled
+        and pause_when_offline == coordinator.pause_when_offline
+    ):
+        return
+
     await hass.config_entries.async_reload(entry.entry_id)
 
 
