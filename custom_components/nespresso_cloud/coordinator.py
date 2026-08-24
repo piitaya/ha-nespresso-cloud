@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import timedelta
 import logging
 import time
+from dataclasses import dataclass
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_COUNTRY
@@ -113,6 +113,16 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._connected_ids: set[str] = set()
         self._active_until = 0.0
         self._last_status: dict[str, MachineStatus] = {}
+
+    @property
+    def polling_disabled(self) -> bool:
+        """Return whether polling is disabled."""
+        return self._polling_disabled
+
+    @property
+    def pause_when_offline(self) -> bool:
+        """Return whether polling pauses when all machines are offline."""
+        return self._pause_when_offline
 
     async def _async_persist_tokens(self, tokens: Tokens) -> None:
         """Persist rotated tokens to the config entry.
