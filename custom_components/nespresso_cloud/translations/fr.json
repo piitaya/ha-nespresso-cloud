@@ -3,14 +3,14 @@
     "step": {
       "user": {
         "title": "Connecter votre compte Nespresso",
-        "description": "1. Ouvrez le site Nespresso ({url}) dans votre navigateur et connectez-vous.\n2. Appuyez sur F12 pour ouvrir les outils développeur, allez dans l'onglet **Console**.\n3. Collez ce snippet et validez :\n\n```\n{snippet}\n```\n\n4. Copiez la valeur de `authorization_code` affichée et collez-la ci-dessous.",
+        "description": "1. Ouvrez le site Nespresso ({url}) dans votre navigateur et connectez-vous.\n2. Appuyez sur F12 pour ouvrir les outils de développement, puis allez dans l'onglet **Console**.\n3. Collez ce code et validez :\n\n```\n{snippet}\n```\n\n4. Copiez la valeur de `authorization_code` affichée et collez-la ci-dessous.",
         "data": {
           "authorization_code": "Code d'autorisation"
         }
       },
       "reauth_confirm": {
         "title": "Reconnecter votre compte Nespresso",
-        "description": "Votre session précédente a expiré. Refaites la procédure pour obtenir un nouveau code :\n\n1. Connectez-vous sur le site Nespresso ({url}).\n2. Ouvrez les outils développeur (F12), allez dans **Console**, collez :\n\n```\n{snippet}\n```\n\n3. Collez le `authorization_code` ici.",
+        "description": "Votre session précédente a expiré. Refaites la procédure pour obtenir un nouveau code :\n\n1. Connectez-vous sur le site Nespresso ({url}).\n2. Ouvrez les outils de développement (F12), allez dans **Console**, collez :\n\n```\n{snippet}\n```\n\n3. Collez le `authorization_code` ici.",
         "data": {
           "authorization_code": "Code d'autorisation"
         }
@@ -20,11 +20,11 @@
       "invalid_auth": "Le refresh token a été rejeté par Nespresso. Capturez-en un nouveau et réessayez.",
       "cannot_connect": "Impossible de joindre le cloud Nespresso.",
       "different_account": "Ce refresh token appartient à un autre compte Nespresso que celui initialement configuré.",
-      "unknown": "Erreur inattendue. Vérifiez les logs."
+      "unknown": "Erreur inattendue. Consultez les journaux."
     },
     "abort": {
       "already_configured": "Ce compte Nespresso est déjà configuré.",
-      "reauth_successful": "Token rafraîchi avec succès."
+      "reauth_successful": "Reconnexion réussie."
     }
   },
   "options": {
@@ -32,10 +32,10 @@
       "init": {
         "title": "Options Nespresso Cloud",
         "data": {
-          "pause_when_offline": "Suspendre l'interrogation quand la machine est hors-ligne"
+          "pause_when_offline": "Suspendre l'interrogation quand la machine est hors ligne"
         },
         "data_description": {
-          "pause_when_offline": "Suspend toute interrogation du cloud quand la machine est hors-ligne ; une automatisation doit la relancer, par exemple une prise connectée appelant homeassistant.update_entity. À n'activer que si un tel déclencheur existe."
+          "pause_when_offline": "Suspend toute interrogation du cloud quand la machine est hors ligne. Une automatisation doit alors la relancer, par exemple une prise connectée qui appelle homeassistant.update_entity. À n'activer que si un tel déclencheur existe."
         }
       }
     }
@@ -45,9 +45,9 @@
       "machine_state": {
         "state": {
           "reset": "Réinitialisée",
-          "heat_up": "Chauffage",
+          "heat_up": "Chauffe",
           "ready": "Prête",
-          "descaling_ready": "Prête pour détartrage",
+          "descaling_ready": "Prête pour le détartrage",
           "brewing": "Préparation",
           "cleaning": "Nettoyage",
           "descaling": "Détartrage",
@@ -55,41 +55,41 @@
           "device_error": "Erreur",
           "low_power": "Économie d'énergie",
           "cool_down": "Refroidissement",
-          "service_mode": "Mode service",
+          "service_mode": "Mode maintenance",
           "standby": "Veille",
           "updating": "Mise à jour",
           "rinsing": "Rinçage",
-          "capsule_reading": "Lecture capsule",
-          "descale_sequence_decoding": "Décodage détartrage",
+          "capsule_reading": "Lecture de la capsule",
+          "descale_sequence_decoding": "Décodage de la séquence de détartrage",
           "tank_empty": "Réservoir vide",
           "descaling_paused": "Détartrage en pause",
           "initialization": "Initialisation",
-          "rinsing_ready": "Prête pour rinçage",
+          "rinsing_ready": "Prête pour le rinçage",
           "ready_blocked": "Bloquée",
           "cleaning_paused": "Nettoyage en pause",
-          "emptying_ready": "Prête pour vidange",
-          "cleaning_ready": "Prête pour nettoyage",
+          "emptying_ready": "Prête pour la vidange",
+          "cleaning_ready": "Prête pour le nettoyage",
           "old_capsule_detected": "Capsule usagée",
           "rinsing_paused": "Rinçage en pause",
-          "hard_reset_running": "Réinitialisation usine",
+          "hard_reset_running": "Réinitialisation d'usine",
           "soft_reset_running": "Réinitialisation logicielle"
         }
       },
       "milk_unit": {
-        "name": "Module lait",
+        "name": "Système à lait",
         "state": {
           "offline": "Hors ligne",
           "ready": "Prêt",
           "frothing": "Émulsion",
           "cleaning": "Nettoyage",
-          "heat_up": "Chauffage",
-          "descaling_ready": "Prêt pour détartrage",
+          "heat_up": "Chauffe",
+          "descaling_ready": "Prêt pour le détartrage",
           "descaling_active": "Détartrage",
-          "rinsing_ready": "Prêt pour rinçage",
+          "rinsing_ready": "Prêt pour le rinçage",
           "rinsing_active": "Rinçage",
           "blocked_menu": "Bloqué (café en cours)",
-          "blocked_cleaning_needed": "Bloqué (nettoyage requis)",
-          "blocked_descaling_needed": "Bloqué (détartrage requis)",
+          "blocked_cleaning_needed": "Bloqué (nettoyage nécessaire)",
+          "blocked_descaling_needed": "Bloqué (détartrage nécessaire)",
           "waiting": "En attente",
           "descaling_paused": "Détartrage en pause",
           "rinsing_paused": "Rinçage en pause"
@@ -113,29 +113,29 @@
         "name": "Erreur",
         "state": {
           "none": "Aucune",
-          "descaling_required": "Détartrage requis",
+          "descaling_required": "Détartrage nécessaire",
           "capsule_detected": "Capsule détectée",
           "emptying_aborted": "Vidange interrompue",
           "water_tank_empty": "Réservoir vide",
-          "lever_open": "Couvercle ouvert",
+          "lever_open": "Levier ouvert",
           "old_capsule": "Capsule usagée",
-          "no_capsule_detected": "Pas de capsule",
+          "no_capsule_detected": "Aucune capsule détectée",
           "drying_interrupted": "Séchage interrompu",
           "capsule_not_supported": "Capsule non prise en charge",
           "process_stopped": "Opération interrompue",
           "descaling_interrupted": "Détartrage interrompu",
           "top_up_not_allowed": "Recharge non autorisée",
-          "cooldown_started": "Refroidissement",
-          "machine_failure": "Panne machine",
-          "capsule_reading_failed": "Lecture capsule échouée",
-          "no_water_flow": "Pas d'eau"
+          "cooldown_started": "Refroidissement en cours",
+          "machine_failure": "Panne de la machine",
+          "capsule_reading_failed": "Échec de la lecture de la capsule",
+          "no_water_flow": "Pas de débit d'eau"
         }
       },
       "error_code": { "name": "Code d'erreur" }
     },
     "binary_sensor": {
       "connected": { "name": "Connectée" },
-      "descaling_alert": { "name": "Détartrage requis" },
+      "descaling_alert": { "name": "Détartrage nécessaire" },
       "tank_empty": { "name": "Réservoir d'eau vide" },
       "old_capsule": { "name": "Capsule usagée" }
     }
