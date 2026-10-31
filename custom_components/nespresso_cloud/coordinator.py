@@ -211,9 +211,8 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         """Return firmware/brand info, refetching at most once per TTL."""
         cached = self._info_cache.get(machine_id)
         if (
-            cached is not None
-            and time.time() - self._info_fetched_at.get(machine_id, 0.0)
-            < MACHINE_INFO_TTL_S
+            machine_id in self._info_fetched_at
+            and time.time() - self._info_fetched_at[machine_id] < MACHINE_INFO_TTL_S
         ):
             return cached
 
@@ -221,6 +220,9 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
             self.api.async_get_machine_info(self.owner_id, machine_id)
         )
         if fresh is None:
+            # Without this a machine whose machineInfo keeps failing (seen as
+            # a permanent 404) was retried, and logged, on every poll.
+            self._info_fetched_at[machine_id] = time.time()
             return cached
         self._info_cache[machine_id] = fresh
         self._info_fetched_at[machine_id] = time.time()
