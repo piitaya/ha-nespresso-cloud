@@ -139,6 +139,11 @@ ERROR_CODE_LABELS: dict[int, str] = {
 class NespressoError(Exception):
     """Base class for ECapi errors."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+        """HTTP status when the error came from a response, else None."""
+
 
 class NespressoAuthError(NespressoError):
     """Raised when the refresh_token is invalid or revoked.
@@ -374,7 +379,7 @@ async def _read_json_or_raise(resp: aiohttp.ClientResponse, path: str) -> Any:
         raise NespressoAuthError(f"401 on {path}: {body[:200]}")
     if resp.status >= 400:
         body = await resp.text()
-        raise NespressoError(f"{resp.status} on {path}: {body[:200]}")
+        raise NespressoError(f"{resp.status} on {path}: {body[:200]}", resp.status)
     return await resp.json(content_type=None)
 
 

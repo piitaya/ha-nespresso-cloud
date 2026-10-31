@@ -28,6 +28,7 @@ from .const import (
     ERROR_BACKOFF_MAX_S,
     MACHINE_INFO_TTL_S,
     MACHINE_LIST_TTL_S,
+    PARK_RETRY_MIN_S,
     SCAN_INTERVAL_ACTIVE_S,
     SCAN_INTERVAL_IDLE_S,
     SCAN_INTERVAL_OFFLINE_S,
@@ -44,6 +45,21 @@ from .lib import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Presence statuses meaning "the cloud has no live machine behind this ID" —
+# seen on every poll for stale entries on an account (a replaced machine
+# answers 404, a leftover machinesB2CProfile entry 420). A live machine can
+# also 404 for a while during a cloud incident, so only a machine that hasn't
+# answered since setup is parked.
+MACHINE_REJECTED_STATUSES = frozenset({404, 420})
+
+
+@dataclass
+class _Parked:
+    """When a rejected machine is next probed, and the current retry interval."""
+
+    retry_at: float
+    interval: float
 
 
 @dataclass
@@ -112,6 +128,8 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._error_backoff = 0
         self._connected_ids: set[str] = set()
         self._active_until = 0.0
+        self._answered: set[str] = set()
+        self._parked: dict[str, _Parked] = {}
 
     async def _async_persist_tokens(self, tokens: Tokens) -> None:
         """Persist rotated tokens to the config entry.
@@ -144,9 +162,14 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
             snapshots: dict[str, MachineSnapshot] = {}
 
             for machine in machines:
-                presence = await self._safe(
-                    self.api.async_get_presence(self.owner_id, machine.id)
-                )
+                parked = self._parked.get(machine.id)
+                if parked is None or time.time() >= parked.retry_at:
+                    presence = await self._async_presence(machine)
+                if machine.id in self._parked:
+                    snapshots[machine.id] = MachineSnapshot(
+                        machine=machine, status=None, presence=None, info=None
+                    )
+                    continue
                 connected = presence is not None and presence.connected
                 status = (
                     await self._safe(
@@ -206,6 +229,40 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._machines_cache = machines
         self._machines_fetched_at = time.time()
         return machines
+
+    async def _async_presence(self, machine: Machine) -> MachinePresence | None:
+        """Fetch presence, parking the machine if the cloud rejects its ID."""
+        try:
+            presence = await self.api.async_get_presence(self.owner_id, machine.id)
+        except NespressoAuthError:
+            raise
+        except NespressoError as err:
+            if (
+                err.status not in MACHINE_REJECTED_STATUSES
+                or machine.id in self._answered
+            ):
+                _LOGGER.warning("Per-machine call failed: %s", err)
+                return None
+            parked = self._parked.get(machine.id)
+            if parked is None:
+                _LOGGER.warning(
+                    "Machine %s (%s) is rejected by the Nespresso cloud (%s) "
+                    "and hasn't answered since setup; polling it less often. "
+                    "Remove it from the Nespresso account if it is not a "
+                    "connected machine",
+                    machine.custom_name or machine.id,
+                    machine.type,
+                    err.status,
+                )
+                interval = PARK_RETRY_MIN_S
+            else:
+                interval = min(parked.interval * 2, MACHINE_LIST_TTL_S)
+            self._parked[machine.id] = _Parked(time.time() + interval, interval)
+            return None
+        self._answered.add(machine.id)
+        if self._parked.pop(machine.id, None) is not None:
+            _LOGGER.info("Machine %s answers again", machine.custom_name or machine.id)
+        return presence
 
     async def _async_machine_info(self, machine_id: str) -> MachineInfo | None:
         """Return firmware/brand info, refetching at most once per TTL."""
