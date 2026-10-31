@@ -6,7 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.device_registry import DeviceEntry
 
+from .const import DOMAIN
 from .coordinator import NespressoCoordinator
 
 type NespressoCloudEntry = ConfigEntry[NespressoCoordinator]
@@ -44,3 +46,19 @@ async def _async_reload_on_update(
 async def async_unload_entry(hass: HomeAssistant, entry: NespressoCloudEntry) -> bool:
     """Tear down the integration cleanly."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: NespressoCloudEntry, device: DeviceEntry
+) -> bool:
+    """Allow removing a device only once the account no longer lists it."""
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is None or coordinator.data is None:
+        # Not loaded, so the account's machines are unknown. A machine the
+        # account still lists gets its device back on the next setup.
+        return True
+    machines = coordinator.data.machines
+    return not any(
+        domain == DOMAIN and machine_id in machines
+        for domain, machine_id in device.identifiers
+    )
