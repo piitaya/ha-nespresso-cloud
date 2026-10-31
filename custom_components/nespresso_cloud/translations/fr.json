@@ -131,13 +131,39 @@
           "no_water_flow": "Pas de débit d'eau"
         }
       },
-      "error_code": { "name": "Code d'erreur" }
+      "error_code": { "name": "Code d'erreur" },
+      "connectivity_firmware": { "name": "Firmware connectivité" },
+      "recipe_version": { "name": "Version de la base de recettes" },
+      "wifi_network": { "name": "Réseau Wi-Fi" },
+      "last_coffee_family": { "name": "Dernière famille de café" },
+      "fota_status": { "name": "État de mise à jour firmware" },
+      "volume_customization": { "name": "Personnalisation du volume" },
+      "temperature_customization": { "name": "Personnalisation de la température" },
+      "recipe_tag": { "name": "Tag de recette" },
+      "brews": { "name": "Cafés", "unit_of_measurement": "cafés" }
     },
     "binary_sensor": {
       "connected": { "name": "Connectée" },
       "descaling_alert": { "name": "Détartrage nécessaire" },
       "tank_empty": { "name": "Réservoir d'eau vide" },
-      "old_capsule": { "name": "Capsule usagée" }
+      "old_capsule": { "name": "Capsule usagée" },
+      "firmware_updating": { "name": "Mise à jour firmware en cours" }
+    },
+    "event": {
+      "machine_event": {
+        "name": "Événement machine",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "brew_started": "Préparation démarrée",
+              "brew_finished": "Préparation terminée",
+              "error": "Erreur",
+              "water_tank_empty": "Réservoir d'eau vide",
+              "descaling_required": "Détartrage requis"
+            }
+          }
+        }
+      }
     }
   }
 }

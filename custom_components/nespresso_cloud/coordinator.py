@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import timedelta
 import logging
 import time
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_COUNTRY
@@ -26,8 +27,15 @@ from .const import (
     DOMAIN,
     ERROR_BACKOFF_BASE_S,
     ERROR_BACKOFF_MAX_S,
+    EVENT_BREW_FINISHED,
+    EVENT_BREW_STARTED,
+    EVENT_DESCALING_REQUIRED,
+    EVENT_ERROR,
+    EVENT_WATER_TANK_EMPTY,
     MACHINE_INFO_TTL_S,
     MACHINE_LIST_TTL_S,
+    MACHINE_STATUS_BREWING,
+    MACHINE_STATUS_TANK_EMPTY,
     SCAN_INTERVAL_ACTIVE_S,
     SCAN_INTERVAL_IDLE_S,
     SCAN_INTERVAL_OFFLINE_S,
@@ -40,10 +48,20 @@ from .lib import (
     NespressoApiClient,
     NespressoAuthError,
     NespressoError,
+    ReportedStatus,
     Tokens,
 )
+from .lib.api import error_code_label
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class MachineEvent:
+    """A state transition detected between two polls."""
+
+    type: str
+    data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -54,6 +72,8 @@ class MachineSnapshot:
     status: MachineStatus | None
     presence: MachinePresence | None
     info: MachineInfo | None
+    events: list[MachineEvent] = field(default_factory=list)
+    """Transitions since the previous successful poll."""
 
 
 @dataclass
@@ -62,6 +82,20 @@ class CoordinatorData:
 
     machines: dict[str, MachineSnapshot]
     """Keyed by ``machine.id`` (the UUID, not the serial)."""
+
+    seq: int = 0
+    """Bumped on every successful refresh. Listeners also fire on failed
+    refreshes with the previous data, so event consumers dedupe on this."""
+
+
+@dataclass
+class _Tracker:
+    """Last known reported values for one machine, for edge detection."""
+
+    machine_status: int | None = None
+    error_code: int | None = None
+    descaling_alert: bool | None = None
+    brew_started_at: float | None = None
 
 
 class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
@@ -112,6 +146,8 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._error_backoff = 0
         self._connected_ids: set[str] = set()
         self._active_until = 0.0
+        self._trackers: dict[str, _Tracker] = {}
+        self._seq = 0
 
     async def _async_persist_tokens(self, tokens: Tokens) -> None:
         """Persist rotated tokens to the config entry.
@@ -160,6 +196,7 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
                     status=status,
                     presence=presence,
                     info=await self._async_machine_info(machine.id),
+                    events=self._detect_events(machine.id, connected, status),
                 )
 
             connected_now = {
@@ -175,7 +212,8 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
             self._tune_interval(snapshots)
             self._error_backoff = 0
-            return CoordinatorData(machines=snapshots)
+            self._seq += 1
+            return CoordinatorData(machines=snapshots, seq=self._seq)
 
         except NespressoAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
@@ -225,6 +263,71 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self._info_cache[machine_id] = fresh
         self._info_fetched_at[machine_id] = time.time()
         return fresh
+
+    def _detect_events(
+        self, machine_id: str, connected: bool, status: MachineStatus | None
+    ) -> list[MachineEvent]:
+        """Diff ``status`` against the last known values and emit edges."""
+        if not connected:
+            # A fresh session starts clean: no "finished" for a brew whose
+            # end we never saw.
+            self._trackers.pop(machine_id, None)
+            return []
+        if status is None:
+            # Transient per-machine failure; keep the tracker as is.
+            return []
+
+        tracker = self._trackers.setdefault(machine_id, _Tracker())
+        reported: ReportedStatus = status.reported
+        events: list[MachineEvent] = []
+
+        prev_status, now_status = tracker.machine_status, reported.machine_status
+        if prev_status is not None and now_status is not None:
+            if (
+                prev_status != MACHINE_STATUS_BREWING
+                and now_status == MACHINE_STATUS_BREWING
+            ):
+                tracker.brew_started_at = time.monotonic()
+                events.append(MachineEvent(EVENT_BREW_STARTED))
+            elif (
+                prev_status == MACHINE_STATUS_BREWING
+                and now_status != MACHINE_STATUS_BREWING
+            ):
+                data: dict[str, Any] = {
+                    "coffee_family_id": reported.last_coffee_family_id
+                }
+                if tracker.brew_started_at is not None:
+                    # Poll-granular, so only as precise as the active interval.
+                    data["duration"] = round(
+                        time.monotonic() - tracker.brew_started_at
+                    )
+                tracker.brew_started_at = None
+                events.append(MachineEvent(EVENT_BREW_FINISHED, data))
+            if (
+                prev_status != MACHINE_STATUS_TANK_EMPTY
+                and now_status == MACHINE_STATUS_TANK_EMPTY
+            ):
+                events.append(MachineEvent(EVENT_WATER_TANK_EMPTY))
+
+        prev_error, now_error = tracker.error_code, reported.error_code
+        if prev_error is not None and now_error and now_error != prev_error:
+            events.append(
+                MachineEvent(
+                    EVENT_ERROR,
+                    {"code": now_error, "error": error_code_label(now_error)},
+                )
+            )
+
+        if tracker.descaling_alert is False and reported.descaling_alert is True:
+            events.append(MachineEvent(EVENT_DESCALING_REQUIRED))
+
+        if now_status is not None:
+            tracker.machine_status = now_status
+        if now_error is not None:
+            tracker.error_code = now_error
+        if reported.descaling_alert is not None:
+            tracker.descaling_alert = reported.descaling_alert
+        return events
 
     def _apply_backoff(self) -> None:
         """Slow the poll after repeated cloud errors, capped."""

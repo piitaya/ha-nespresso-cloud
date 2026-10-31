@@ -13,6 +13,7 @@ type NespressoCloudEntry = ConfigEntry[NespressoCoordinator]
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.EVENT,
     Platform.SENSOR,
 ]
 

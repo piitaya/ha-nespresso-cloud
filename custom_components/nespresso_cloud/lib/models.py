@@ -150,6 +150,8 @@ class MachineStatus:
     sync: bool | None
     last_reported_update: datetime | None
     reported: ReportedStatus
+    raw: dict[str, Any] = field(default_factory=dict, repr=False)
+    """Untouched response body, kept for diagnostics of unmodelled fields."""
 
     @classmethod
     def from_response(cls, data: dict[str, Any]) -> MachineStatus:
@@ -164,6 +166,7 @@ class MachineStatus:
             sync=data.get("sync"),
             last_reported_update=last_update,
             reported=ReportedStatus.from_response(data.get("reported") or {}),
+            raw=data,
         )
 
 

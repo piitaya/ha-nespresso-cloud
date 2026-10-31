@@ -18,6 +18,7 @@ from . import NespressoCloudEntry
 from .const import (
     MACHINE_STATUS_OLD_CAPSULE_DETECTED,
     MACHINE_STATUS_TANK_EMPTY,
+    MACHINE_STATUS_UPDATING,
 )
 from .coordinator import MachineSnapshot, NespressoCoordinator
 from .entity import NespressoCloudEntity
@@ -61,6 +62,15 @@ def _old_capsule(snap: MachineSnapshot) -> bool | None:
     return code == MACHINE_STATUS_OLD_CAPSULE_DETECTED
 
 
+def _firmware_updating(snap: MachineSnapshot) -> bool | None:
+    if snap.status is None:
+        return None
+    code = snap.status.reported.machine_status
+    if code is None:
+        return None
+    return code == MACHINE_STATUS_UPDATING
+
+
 BINARY_SENSOR_DESCRIPTIONS: tuple[NespressoBinarySensorDescription, ...] = (
     NespressoBinarySensorDescription(
         key="connected",
@@ -89,6 +99,13 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NespressoBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_old_capsule,
+    ),
+    NespressoBinarySensorDescription(
+        key="firmware_updating",
+        translation_key="firmware_updating",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_firmware_updating,
     ),
 )
 

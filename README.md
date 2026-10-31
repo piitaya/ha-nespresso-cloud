@@ -36,6 +36,8 @@ Per machine:
 | ------------- | ------------- | -------------------------------------------------------- |
 | Machine state | sensor (enum) | Primary state (`ready`, `brewing`, `descaling`, …)       |
 | Milk unit     | sensor (enum) | Milk frother state on 1+1 models (Lattissima, Creatista) |
+| Brews         | sensor        | Brews counted by the integration, see below              |
+| Machine event | event         | `brew_started`, `brew_finished`, `error`, `water_tank_empty`, `descaling_required` |
 
 Diagnostic:
 
@@ -47,11 +49,56 @@ Diagnostic:
 | Water tank empty   | binary sensor |                                              |
 | Descaling required | binary sensor |                                              |
 | Old capsule        | binary sensor |                                              |
+| Firmware updating  | binary sensor | On while the machine installs an update      |
+| Connectivity firmware | sensor     | Wi-Fi module firmware version                |
+| Recipe database version | sensor   |                                              |
+| Wi-Fi network      | sensor        | SSID the machine is joined to                |
 | Error code         | sensor (int)  | Raw error code, disabled by default          |
 | Error origin       | sensor (enum) | Error subsystem, disabled by default         |
 
+Also disabled by default, these expose raw cloud fields whose encoding
+is not mapped yet: last coffee family, firmware update status, volume
+customization, temperature customization, recipe tag. If you work out
+what a value means, please open an issue.
+
 Firmware version is exposed as the device's `sw_version` on the device
-page, not as a separate entity.
+page, not as a separate entity. The machine's Wi-Fi MAC is registered as
+a device connection, so HA links it with the same device from a router
+integration (UniFi, Fritz!Box, …).
+
+### Brews and events
+
+The cloud has no brew counter or history, so the integration derives
+them from state changes between polls. `Brews` counts every transition
+into `brewing` and keeps its total across restarts; it is
+`total_increasing`, so a utility meter can turn it into daily or weekly
+counts. `brew_finished` carries the poll-granular `duration` in seconds
+and the raw `coffee_family_id`; `error` carries `code` and `error`.
+
+Only transitions seen while polling are caught. With "Stop polling while
+the machine is offline" on, brews made before something wakes the
+polling are missed.
+
+Example, a notification when the tank runs dry:
+
+```yaml
+triggers:
+  - trigger: state
+    entity_id: event.coffee_machine_event
+    attribute: event_type
+    to: water_tank_empty
+actions:
+  - action: notify.notify
+    data:
+      message: Refill the coffee machine water tank
+```
+
+### Diagnostics
+
+**Settings → Devices & Services → Nespresso Cloud → ⋮ → Download
+diagnostics** dumps the latest raw cloud payloads with tokens, serials,
+MACs, pairing keys and the Wi-Fi name redacted. Attach it when reporting
+an `unknown_<n>` state or error.
 
 ## Install
 

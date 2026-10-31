@@ -131,13 +131,39 @@
           "no_water_flow": "No water flow"
         }
       },
-      "error_code": { "name": "Error code" }
+      "error_code": { "name": "Error code" },
+      "connectivity_firmware": { "name": "Connectivity firmware" },
+      "recipe_version": { "name": "Recipe database version" },
+      "wifi_network": { "name": "Wi-Fi network" },
+      "last_coffee_family": { "name": "Last coffee family" },
+      "fota_status": { "name": "Firmware update status" },
+      "volume_customization": { "name": "Volume customization" },
+      "temperature_customization": { "name": "Temperature customization" },
+      "recipe_tag": { "name": "Recipe tag" },
+      "brews": { "name": "Brews", "unit_of_measurement": "brews" }
     },
     "binary_sensor": {
       "connected": { "name": "Connected" },
       "descaling_alert": { "name": "Descaling required" },
       "tank_empty": { "name": "Water tank empty" },
-      "old_capsule": { "name": "Old capsule" }
+      "old_capsule": { "name": "Old capsule" },
+      "firmware_updating": { "name": "Firmware updating" }
+    },
+    "event": {
+      "machine_event": {
+        "name": "Machine event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "brew_started": "Brew started",
+              "brew_finished": "Brew finished",
+              "error": "Error",
+              "water_tank_empty": "Water tank empty",
+              "descaling_required": "Descaling required"
+            }
+          }
+        }
+      }
     }
   }
 }
