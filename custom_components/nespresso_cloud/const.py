@@ -32,6 +32,8 @@ MACHINE_LIST_TTL_S: Final = 86400
 ERROR_BACKOFF_BASE_S: Final = 60
 ERROR_BACKOFF_MAX_S: Final = 900
 
+MACHINE_STATUS_BREWING: Final = 4
+MACHINE_STATUS_UPDATING: Final = 13
 MACHINE_STATUS_TANK_EMPTY: Final = 19
 MACHINE_STATUS_OLD_CAPSULE_DETECTED: Final = 35
 
@@ -55,3 +57,18 @@ ACTIVE_MACHINE_STATUS_CODES: Final = frozenset(
     }
 )
 
+
+# Event types fired by the per-machine event entity, derived from state
+# transitions between polls. Only edges seen while polling are caught.
+EVENT_BREW_STARTED: Final = "brew_started"
+EVENT_BREW_FINISHED: Final = "brew_finished"
+EVENT_ERROR: Final = "error"
+EVENT_WATER_TANK_EMPTY: Final = "water_tank_empty"
+EVENT_DESCALING_REQUIRED: Final = "descaling_required"
+EVENT_TYPES: Final = (
+    EVENT_BREW_STARTED,
+    EVENT_BREW_FINISHED,
+    EVENT_ERROR,
+    EVENT_WATER_TANK_EMPTY,
+    EVENT_DESCALING_REQUIRED,
+)

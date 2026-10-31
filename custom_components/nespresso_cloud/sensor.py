@@ -6,15 +6,18 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from homeassistant.components.sensor import (
+    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
+    SensorStateClass,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NespressoCloudEntry
+from .const import EVENT_BREW_STARTED
 from .coordinator import MachineSnapshot, NespressoCoordinator
 from .entity import NespressoCloudEntity
 from .lib.api import (
@@ -74,6 +77,29 @@ def _error_origin(snap: MachineSnapshot) -> str | None:
     return error_origin_label(snap.status.reported.error_origin)
 
 
+def _reported(attr: str) -> Callable[[MachineSnapshot], Any]:
+    """Build an extractor for a raw ``status.reported`` field."""
+
+    def _value(snap: MachineSnapshot) -> Any:
+        if snap.status is None:
+            return None
+        return getattr(snap.status.reported, attr)
+
+    return _value
+
+
+def _connectivity_fw(snap: MachineSnapshot) -> str | None:
+    return snap.info.connectivity_fw if snap.info else None
+
+
+def _recipe_version(snap: MachineSnapshot) -> str | None:
+    return snap.info.recipe_version if snap.info else None
+
+
+def _wifi_network(snap: MachineSnapshot) -> str | None:
+    return snap.machine.wifi_name
+
+
 # Derive ENUM options from the label dicts so they stay in sync.
 MACHINE_STATE_OPTIONS = sorted(set(MACHINE_STATUS_LABELS.values()))
 MILK_UNIT_OPTIONS = sorted(set(MILK_UNIT_STATUS_LABELS.values()))
@@ -128,6 +154,61 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         value_fn=_error_origin,
         entity_registry_enabled_default=False,
     ),
+    NespressoSensorDescription(
+        key="connectivity_firmware",
+        translation_key="connectivity_firmware",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_connectivity_fw,
+    ),
+    NespressoSensorDescription(
+        key="recipe_version",
+        translation_key="recipe_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_recipe_version,
+    ),
+    NespressoSensorDescription(
+        key="wifi_network",
+        translation_key="wifi_network",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_wifi_network,
+    ),
+    # Raw fields whose encoding isn't mapped yet. Disabled by default;
+    # exposed so users can help label them.
+    NespressoSensorDescription(
+        key="last_coffee_family",
+        translation_key="last_coffee_family",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_reported("last_coffee_family_id"),
+        entity_registry_enabled_default=False,
+    ),
+    NespressoSensorDescription(
+        key="fota_status",
+        translation_key="fota_status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_reported("fota_status"),
+        entity_registry_enabled_default=False,
+    ),
+    NespressoSensorDescription(
+        key="volume_customization",
+        translation_key="volume_customization",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_reported("volume_customization"),
+        entity_registry_enabled_default=False,
+    ),
+    NespressoSensorDescription(
+        key="temperature_customization",
+        translation_key="temperature_customization",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_reported("temperature_customization"),
+        entity_registry_enabled_default=False,
+    ),
+    NespressoSensorDescription(
+        key="recipe_tag",
+        translation_key="recipe_tag",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=_reported("recipe_tag"),
+        entity_registry_enabled_default=False,
+    ),
 )
 
 
@@ -139,7 +220,7 @@ async def async_setup_entry(
     """Set up sensor entities for each machine on the account."""
     coordinator = entry.runtime_data
     machines = coordinator.data.machines if coordinator.data else {}
-    entities: list[NespressoSensor] = []
+    entities: list[SensorEntity] = []
     for machine_id, snap in machines.items():
         # ``1Plus1`` profile codes (e.g. ``machinesVenus1Plus1DLProfile``)
         # are the 1+1 models — brewer plus milk frother. Other Vertuo
@@ -149,6 +230,7 @@ async def async_setup_entry(
             if desc.key == "milk_unit" and not has_milk_frother:
                 continue
             entities.append(NespressoSensor(coordinator, machine_id, desc))
+        entities.append(NespressoBrewCounter(coordinator, machine_id))
     async_add_entities(entities)
 
 
@@ -174,3 +256,42 @@ class NespressoSensor(NespressoCloudEntity, SensorEntity):
         if snap is None:
             return None
         return self.entity_description.value_fn(snap)
+
+
+class NespressoBrewCounter(NespressoCloudEntity, RestoreSensor):
+    """Brews counted from observed ``brewing`` transitions.
+
+    The cloud has no counter of its own, so this only counts brews that
+    happen while HA is polling. The total survives restarts.
+    """
+
+    _attr_translation_key = "brews"
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+
+    def __init__(self, coordinator: NespressoCoordinator, machine_id: str) -> None:
+        """Initialize the counter at zero; restored on add."""
+        super().__init__(coordinator, machine_id, "brews")
+        self._attr_native_value = 0
+
+    @property
+    def available(self) -> bool:
+        """Stay available offline: the total is ours, not the cloud's."""
+        return self._snapshot is not None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the running total."""
+        await super().async_added_to_hass()
+        last = await self.async_get_last_sensor_data()
+        if last is not None and last.native_value is not None:
+            try:
+                self._attr_native_value = int(last.native_value)
+            except (TypeError, ValueError):
+                pass
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Add any brews started since the last refresh."""
+        started = sum(1 for e in self._new_events() if e.type == EVENT_BREW_STARTED)
+        if started:
+            self._attr_native_value += started
+        super()._handle_coordinator_update()

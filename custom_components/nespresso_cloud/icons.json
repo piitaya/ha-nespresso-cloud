@@ -6,12 +6,25 @@
       "last_seen": { "default": "mdi:clock-outline" },
       "error": { "default": "mdi:alert-circle-outline" },
       "error_code": { "default": "mdi:identifier" },
-      "error_origin": { "default": "mdi:source-branch" }
+      "error_origin": { "default": "mdi:source-branch" },
+      "connectivity_firmware": { "default": "mdi:chip" },
+      "recipe_version": { "default": "mdi:book-open-variant" },
+      "wifi_network": { "default": "mdi:wifi" },
+      "last_coffee_family": { "default": "mdi:coffee-outline" },
+      "fota_status": { "default": "mdi:update" },
+      "volume_customization": { "default": "mdi:cup-water" },
+      "temperature_customization": { "default": "mdi:thermometer" },
+      "recipe_tag": { "default": "mdi:tag-outline" },
+      "brews": { "default": "mdi:coffee" }
     },
     "binary_sensor": {
       "tank_empty": { "default": "mdi:water-off" },
       "old_capsule": { "default": "mdi:coffee-off" },
-      "descaling_alert": { "default": "mdi:water-pump" }
+      "descaling_alert": { "default": "mdi:water-pump" },
+      "firmware_updating": { "default": "mdi:update" }
+    },
+    "event": {
+      "machine_event": { "default": "mdi:coffee-maker-outline" }
     }
   }
 }

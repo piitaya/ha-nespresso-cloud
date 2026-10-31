@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import (
+    CONNECTION_NETWORK_MAC,
+    DeviceInfo,
+    format_mac,
+)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import MachineSnapshot, NespressoCoordinator
+from .coordinator import MachineEvent, MachineSnapshot, NespressoCoordinator
 from .lib import Machine
 
 # Profile-code (`machine.type`) → human marketing name.
@@ -35,12 +39,23 @@ class NespressoCloudEntity(CoordinatorEntity[NespressoCoordinator]):
         super().__init__(coordinator)
         self._machine_id = machine_id
         self._attr_unique_id = f"{machine_id}_{key}"
+        # Events in the data present at creation predate this entity.
+        self._last_seq = coordinator.data.seq if coordinator.data else 0
 
     @property
     def _snapshot(self) -> MachineSnapshot | None:
         if self.coordinator.data is None:
             return None
         return self.coordinator.data.machines.get(self._machine_id)
+
+    def _new_events(self) -> list[MachineEvent]:
+        """Return this machine's events not yet seen by this entity."""
+        data = self.coordinator.data
+        if data is None or data.seq == self._last_seq:
+            return []
+        self._last_seq = data.seq
+        snap = data.machines.get(self._machine_id)
+        return snap.events if snap else []
 
     @property
     def available(self) -> bool:
@@ -60,8 +75,15 @@ class NespressoCloudEntity(CoordinatorEntity[NespressoCoordinator]):
         # Strip the catalog prefix so the displayed model_id is the SKU
         # users see on packaging (e.g. ``ENV300W``), not ``erp.fr.b2c/prod/ENV300W``.
         model_id = product_id.split("/")[-1] if product_id else None
+        # Lets HA merge this device with the router/UniFi entry for it.
+        connections = (
+            {(CONNECTION_NETWORK_MAC, format_mac(machine.wifi_mac_address))}
+            if machine and machine.wifi_mac_address
+            else set()
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, self._machine_id)},
+            connections=connections,
             name=(machine.custom_name if machine and machine.custom_name else None)
             or self._default_name(machine),
             manufacturer="Nespresso",
