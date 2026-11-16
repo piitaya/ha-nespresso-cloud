@@ -53,6 +53,15 @@ Diagnostic:
 Firmware version is exposed as the device's `sw_version` on the device
 page, not as a separate entity.
 
+When a machine goes to standby, it disconnects from the cloud. Until
+it's back online:
+
+- `Machine state` is `off`, `Milk unit` is `offline`, `Error` is
+  `none`, `Old capsule` and `Connected` are off.
+- `Water tank empty` and `Descaling required` are unavailable: they
+  can change, or stay true, while the machine is off.
+- `Last seen` shows when the machine was last online.
+
 ## Install
 
 Recommended via HACS:

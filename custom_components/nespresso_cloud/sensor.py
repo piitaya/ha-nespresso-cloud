@@ -17,7 +17,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import NespressoCloudEntry
 from .coordinator import MachineSnapshot, NespressoCoordinator
-from .entity import NespressoCloudEntity
+from .entity import (
+    NespressoCloudEntity,
+    has_presence,
+    has_status,
+    is_offline,
+    offline_or_has_status,
+)
 from .lib.api import (
     ERROR_CODE_LABELS,
     ERROR_ORIGIN_LABELS,
@@ -38,9 +44,17 @@ class NespressoSensorDescription(SensorEntityDescription):
     """Sensor description with a value extractor."""
 
     value_fn: Callable[[MachineSnapshot], Any]
+    available_fn: Callable[[MachineSnapshot], bool] = has_status
+    """Return False when the data this sensor reads wasn't fetched."""
+
+
+# Not reported by the machine: set when the cloud says it's offline.
+MACHINE_STATE_OFF = "off"
 
 
 def _machine_state(snap: MachineSnapshot) -> str | None:
+    if is_offline(snap):
+        return MACHINE_STATE_OFF
     if snap.status is None:
         return None
     return machine_status_label(snap.status.reported.machine_status)
@@ -54,32 +68,43 @@ def _last_seen(snap: MachineSnapshot) -> Any:
     return None
 
 
+# An off machine has its milk unit offline and no active error.
 def _milk_unit(snap: MachineSnapshot) -> str | None:
+    if is_offline(snap):
+        return milk_unit_status_label(0)
     if snap.status is None:
         return None
     return milk_unit_status_label(snap.status.reported.milk_unit_status)
 
 
 def _error(snap: MachineSnapshot) -> str | None:
+    if is_offline(snap):
+        return error_code_label(0)
     if snap.status is None:
         return None
     return error_code_label(snap.status.reported.error_code)
 
 
 def _error_code(snap: MachineSnapshot) -> int | None:
+    if is_offline(snap):
+        return 0
     if snap.status is None:
         return None
     return snap.status.reported.error_code
 
 
 def _error_origin(snap: MachineSnapshot) -> str | None:
+    if is_offline(snap):
+        return error_origin_label(0)
     if snap.status is None:
         return None
     return error_origin_label(snap.status.reported.error_origin)
 
 
 # Derive ENUM options from the label dicts so they stay in sync.
-MACHINE_STATE_OPTIONS = sorted(set(MACHINE_STATUS_LABELS.values()))
+MACHINE_STATE_OPTIONS = sorted(
+    set(MACHINE_STATUS_LABELS.values()) | {MACHINE_STATE_OFF}
+)
 MILK_UNIT_OPTIONS = sorted(set(MILK_UNIT_STATUS_LABELS.values()))
 ERROR_ORIGIN_OPTIONS = sorted(set(ERROR_ORIGIN_LABELS.values()))
 ERROR_CODE_OPTIONS = sorted(set(ERROR_CODE_LABELS.values()))
@@ -93,6 +118,7 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=MACHINE_STATE_OPTIONS,
         value_fn=_machine_state,
+        available_fn=offline_or_has_status,
     ),
     NespressoSensorDescription(
         key="last_seen",
@@ -100,6 +126,7 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_last_seen,
+        available_fn=has_presence,
     ),
     NespressoSensorDescription(
         key="milk_unit",
@@ -107,6 +134,7 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=MILK_UNIT_OPTIONS,
         value_fn=_milk_unit,
+        available_fn=offline_or_has_status,
     ),
     NespressoSensorDescription(
         key="error",
@@ -115,12 +143,14 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         options=ERROR_CODE_OPTIONS,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_error,
+        available_fn=offline_or_has_status,
     ),
     NespressoSensorDescription(
         key="error_code",
         translation_key="error_code",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_error_code,
+        available_fn=offline_or_has_status,
         entity_registry_enabled_default=False,
     ),
     NespressoSensorDescription(
@@ -130,6 +160,7 @@ SENSOR_DESCRIPTIONS: tuple[NespressoSensorDescription, ...] = (
         options=ERROR_ORIGIN_OPTIONS,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_error_origin,
+        available_fn=offline_or_has_status,
         entity_registry_enabled_default=False,
     ),
 )
@@ -170,6 +201,16 @@ class NespressoSensor(NespressoCloudEntity, SensorEntity):
         """Initialize the sensor for one machine."""
         super().__init__(coordinator, machine_id, description.key)
         self.entity_description = description
+
+    @property
+    def available(self) -> bool:
+        """Return False when the machine is offline or its data is missing."""
+        snap = self._snapshot
+        return (
+            super().available
+            and snap is not None
+            and self.entity_description.available_fn(snap)
+        )
 
     @property
     def native_value(self) -> Any:

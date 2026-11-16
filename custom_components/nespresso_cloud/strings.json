@@ -44,6 +44,7 @@
     "sensor": {
       "machine_state": {
         "state": {
+          "off": "Off",
           "reset": "Reset",
           "heat_up": "Heating up",
           "ready": "Ready",

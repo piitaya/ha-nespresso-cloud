@@ -20,6 +20,32 @@ MODEL_BY_PROFILE: dict[str, str] = {
 }
 
 
+def has_status(snap: MachineSnapshot) -> bool:
+    """Return True when the machine's status was fetched this poll.
+
+    ``status`` is None when the machine is offline or the call failed.
+    """
+    return snap.status is not None
+
+
+def has_presence(snap: MachineSnapshot) -> bool:
+    """Return True when the machine's presence was fetched this poll."""
+    return snap.presence is not None
+
+
+def is_offline(snap: MachineSnapshot) -> bool:
+    """Return True when the cloud answered and says the machine is offline.
+
+    A Vertuo drops its Wi-Fi in standby, so this means it's off.
+    """
+    return snap.presence is not None and not snap.presence.connected
+
+
+def offline_or_has_status(snap: MachineSnapshot) -> bool:
+    """Availability for entities with a known value while the machine is off."""
+    return is_offline(snap) or has_status(snap)
+
+
 class NespressoCloudEntity(CoordinatorEntity[NespressoCoordinator]):
     """Base class for sensors/binary sensors tied to a single machine."""
 
