@@ -162,6 +162,9 @@ uv pip install -r requirements_dev.txt
 .venv/bin/python scripts/debug.py
 ```
 
+On Windows, run the script with `.venv\Scripts\python.exe scripts\debug.py`
+instead.
+
 On first run it walks you through the same browser bootstrap as the HA
 config flow, then writes the refresh token to a local `.env` file that
 subsequent runs reuse.
