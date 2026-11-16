@@ -29,6 +29,10 @@ ACTIVE_HOLD_S: Final = 120
 MACHINE_INFO_TTL_S: Final = 86400
 MACHINE_LIST_TTL_S: Final = 86400
 
+# A machine the cloud rejects before it has ever answered is retried after
+# this long, doubling each time up to MACHINE_LIST_TTL_S.
+PARK_RETRY_MIN_S: Final = 300
+
 ERROR_BACKOFF_BASE_S: Final = 60
 ERROR_BACKOFF_MAX_S: Final = 900
 
