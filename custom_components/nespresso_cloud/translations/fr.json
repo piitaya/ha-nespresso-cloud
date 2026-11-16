@@ -44,6 +44,7 @@
     "sensor": {
       "machine_state": {
         "state": {
+          "off": "Éteinte",
           "reset": "Réinitialisée",
           "heat_up": "Chauffe",
           "ready": "Prête",

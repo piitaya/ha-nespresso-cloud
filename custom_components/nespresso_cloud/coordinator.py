@@ -64,6 +64,11 @@ class CoordinatorData:
     """Keyed by ``machine.id`` (the UUID, not the serial)."""
 
 
+def _machine_name(snap: MachineSnapshot) -> str:
+    """Return a readable name for log messages."""
+    return snap.machine.custom_name or f"Machine {snap.machine.id}"
+
+
 class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
     """Polls /status + /presence + /machineInfo for each paired machine."""
 
@@ -181,6 +186,15 @@ class NespressoCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # fast for a bit even before a brewing status shows up.
             if connected_now - self._connected_ids:
                 self._active_until = time.time() + ACTIVE_HOLD_S
+            # Log once when a machine goes offline and once when it's back,
+            # since its status entities turn unavailable meanwhile. Skip the
+            # first refresh: there's no previous state to compare with.
+            if self.data is not None:
+                for mid in self._connected_ids - connected_now:
+                    if mid in snapshots:
+                        _LOGGER.info("%s is offline", _machine_name(snapshots[mid]))
+                for mid in connected_now - self._connected_ids:
+                    _LOGGER.info("%s is back online", _machine_name(snapshots[mid]))
             self._connected_ids = connected_now
 
             self._tune_interval(snapshots)

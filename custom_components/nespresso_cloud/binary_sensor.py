@@ -20,7 +20,13 @@ from .const import (
     MACHINE_STATUS_TANK_EMPTY,
 )
 from .coordinator import MachineSnapshot, NespressoCoordinator
-from .entity import NespressoCloudEntity
+from .entity import (
+    NespressoCloudEntity,
+    has_presence,
+    has_status,
+    is_offline,
+    offline_or_has_status,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -29,6 +35,8 @@ class NespressoBinarySensorDescription(BinarySensorEntityDescription):
 
     value_fn: Callable[[MachineSnapshot], bool | None]
     """Return ``None`` to mark the state as unknown."""
+    available_fn: Callable[[MachineSnapshot], bool] = has_status
+    """Return False when the data this sensor reads wasn't fetched."""
 
 
 def _connected(snap: MachineSnapshot) -> bool | None:
@@ -53,6 +61,9 @@ def _tank_empty(snap: MachineSnapshot) -> bool | None:
 
 
 def _old_capsule(snap: MachineSnapshot) -> bool | None:
+    # Only detected while a capsule is read, so never on an off machine.
+    if is_offline(snap):
+        return False
     if snap.status is None:
         return None
     code = snap.status.reported.machine_status
@@ -68,6 +79,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NespressoBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_connected,
+        available_fn=has_presence,
     ),
     NespressoBinarySensorDescription(
         key="descaling_alert",
@@ -89,6 +101,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[NespressoBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_old_capsule,
+        available_fn=offline_or_has_status,
     ),
 )
 
@@ -122,6 +135,16 @@ class NespressoBinarySensor(NespressoCloudEntity, BinarySensorEntity):
         """Initialize the binary sensor for one machine."""
         super().__init__(coordinator, machine_id, description.key)
         self.entity_description = description
+
+    @property
+    def available(self) -> bool:
+        """Return False when the machine is offline or its data is missing."""
+        snap = self._snapshot
+        return (
+            super().available
+            and snap is not None
+            and self.entity_description.available_fn(snap)
+        )
 
     @property
     def is_on(self) -> bool | None:
